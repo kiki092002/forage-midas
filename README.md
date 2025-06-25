@@ -1,2 +1,2 @@
 # Midas
-Project repo for the JPMC Advanced Software Engineering Forage program
+Midas Core, is a financial transaction system that manages money transfers between users.
