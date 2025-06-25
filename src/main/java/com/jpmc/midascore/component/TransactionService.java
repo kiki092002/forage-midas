@@ -5,6 +5,7 @@ import com.jpmc.midascore.entity.UserRecord;
 import com.jpmc.midascore.foundation.Transaction;
 import com.jpmc.midascore.repository.TransactionRecordRepository;
 import com.jpmc.midascore.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,8 +14,11 @@ import java.util.Optional;
 @Component
 public class TransactionService {
 
+    @Autowired
+    private IncentiveService incentiveService;
     private final UserRepository userRepository;
     private final TransactionRecordRepository transactionRecordRepository;
+
 
     public TransactionService(UserRepository userRepository, TransactionRecordRepository transactionRecordRepository) {
         this.userRepository = userRepository;
@@ -38,20 +42,22 @@ public class TransactionService {
             return;
         }
         UserRecord recipient = recipientOpt.get();
-
+        int incentiveAmount = incentiveService.fetchIncentive(tx);
         // 3. Check balance
         if (sender.getBalance() < tx.getAmount()) {
             System.out.println("Insufficient funds for sender ID " + sender.getId());
             return;
         }
-        System.out.println("Processing transaction from " + tx.getSenderId() + sender.getName() + " to " + tx.getRecipientId() +recipient.getName());
+        System.out.println("Balances before: sender=" + sender.getName() + sender.getBalance() + ", recipient=" +recipient.getName() + recipient.getBalance());
 
-        System.out.println("Balances before: sender=" + sender.getBalance() +  ", recipient=" + recipient.getBalance());
-        // 4. Adjust balances
         System.out.println("Processing transaction amount: " + tx.getAmount());
+
         sender.setBalance(sender.getBalance() - tx.getAmount());
-        recipient.setBalance(recipient.getBalance() + tx.getAmount());
-        System.out.println("Balances after: sender=" + sender.getBalance() +  ", recipient=" + recipient.getBalance());
+
+
+        recipient.setBalance(recipient.getBalance() + tx.getAmount() + incentiveAmount);
+
+        System.out.println("Balances after: sender=" + sender.getBalance() + ", recipient=" + recipient.getBalance());
 
         // 5. Save updated users
         userRepository.save(sender);
@@ -62,7 +68,7 @@ public class TransactionService {
         record.setSender(sender);
         record.setRecipient(recipient);
         record.setAmount(tx.getAmount());
-
+        record.setIncentive(incentiveAmount);
 
         transactionRecordRepository.save(record);
 

@@ -19,6 +19,8 @@ public class TransactionRecord {
     @ManyToOne
     @JoinColumn(name = "recipientID")
     private UserRecord recipient;
+
+    private int incentive;
     public TransactionRecord(){}
 
     public TransactionRecord(Long id, UserRecord sender, UserRecord recipient, float amount){
@@ -46,6 +48,9 @@ public class TransactionRecord {
     public void setAmount(float amount) {
         this.amount= amount;
     }
+
+    public int getIncentive() { return incentive; }
+    public void setIncentive(int incentive) { this.incentive = incentive; }
 
 
 }
